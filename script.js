@@ -1,8 +1,4 @@
-import { BaseComponent, Elem as Elem1 } from "./lib/statePubSub.js"
-
-function parent(child) {
-    document.body.appendChild(child);
-}
+import { BaseComponent } from "./lib/component.js"
 
 class Test1 extends BaseComponent {
     /**
@@ -18,7 +14,10 @@ class Test1 extends BaseComponent {
 
     render() {
         console.log("rnder:", this.id);
+        console.log("props:", this.props);
         const elem = document.createElement("div");
+        elem.style.backgroundColor = "red";
+        elem.style.color = "white";
         elem.id = this.id;
 
         const div = document.createElement("div");
@@ -31,7 +30,7 @@ class Test1 extends BaseComponent {
 
         elem.appendChild(button);
 
-        elem.appendChild(this.props.child);
+        domRender(elem, this.props.child, { dontRerender: 0 });
         return elem;
     }
 }
@@ -47,16 +46,47 @@ class Test2 extends BaseComponent {
 
     render() {
         console.log("rnder:", this.id);
+        console.log("props:", this.props);
         const elem = document.createElement("div");
+        elem.style.backgroundColor = "blue";
+        elem.style.color = "white";
         elem.id = this.id;
-        elem.innerHTML = "inner";
+        const propskeys = Object.keys(this.props);
+        if (propskeys.length > 0) {
+            let str = "";
+            for (let i = 0; i < propskeys.length; i++) {
+                str += `${propskeys[i]}:${this.props[propskeys[i]]}\n`;
+            }
+            elem.innerHTML = str;
+        } else {
+            elem.innerHTML = "inner";
+        }
 
         return elem
     }
 }
 
 const test2 = new Test2({});
-const test1 = new Test1({ child: test2.render() });
+const test1 = new Test1({ child: test2 });
 
-parent(test1.render());
 
+
+/**
+ * @param {HTMLElement} parent
+ * @param {BaseComponent} child 
+ * @param {Record<string, any>}[props={}] props
+ * */
+function domRender(parent, child, props = {}) {
+    child.setProps(props);
+    parent.append(child.render());
+}
+
+/**
+ * @param {BaseComponent} child 
+ * */
+function enrtyPoint(child) {
+    const root = document.getElementById("root");
+    domRender(root, child);
+}
+
+enrtyPoint(test1);
